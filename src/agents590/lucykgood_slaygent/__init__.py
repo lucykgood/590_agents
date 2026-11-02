@@ -23,7 +23,7 @@ class StarterAgent:
         settings = self.provider_settings(context)
 
         # Set up ATIF recorder for the current run.
-        recorder = ATIFRecorder.from_environment(agent="my-agent", model=settings.model)
+        recorder = ATIFRecorder.from_environment(agent="lucykgood_slaygent", model=settings.model)
         recorder.add("user", instruction)
 
         # Initialize the agent's memory (conversation history).

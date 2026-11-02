@@ -35,15 +35,15 @@ run `uv sync` after changing entry-point registrations in `pyproject.toml`.
 
 ## Add an agent
 
-1. Create a package such as `src/agents590/my_agent/`.
+1. Create a package such as `src/agents590/lucykgood_slaygent/`.
 2. Implement a no-argument class with `async run(instruction: str, context:
    RunContext) -> str`. Honor `context.cwd` when executing tools and use
    `context.model` for the explicit model override.
-3. Register `my-agent = "agents590.my_agent:MyAgent"` under
+3. Register `lucykgood_slaygent = "agents590.lucykgood_slaygent:MyAgent"` under
    `[project.entry-points."agents590.agents"]`, then run `uv sync`.
 4. Add pytest tests and run `make check` and `make test`.
 
-`agents590 my-agent -i "..."` and `python -m agents590 my-agent -i "..."`
+`agents590 lucykgood_slaygent -i "..."` and `python -m agents590 lucykgood_slaygent -i "..."`
 then use the same implementation. Entry points also allow separately installed
 packages to register additional agents. Duplicate names produce an error.
 
@@ -96,7 +96,7 @@ The sibling `evals/` repository supplies the generic installed-agent adapter:
 ```sh
 cd ../evals
 make agent AGENT=krisj_echo
-make agent AGENT=my-agent MODEL=openai/YOUR_DEPLOYMENT ENV_FILE=../590_agents/.env
+make agent AGENT=lucykgood_slaygent MODEL=openai/YOUR_DEPLOYMENT ENV_FILE=../590_agents/.env
 ```
 
 The second command requires that agent to be registered and implemented and may

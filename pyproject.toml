@@ -16,7 +16,7 @@ openai-smoke = "agents590.smoke:main"
 [project.entry-points."agents590.agents"]
 krisj_starter = "agents590.krisj_starter:StarterAgent"
 krisj_echo = "agents590.krisj_echo:EchoAgent"
-my-agent = "agents590.my_agent:StarterAgent"
+lucykgood_slaygent = "agents590.lucykgood_slaygent:StarterAgent"
 webp_agent = "agents590.webp_agent:WebpAgent"
 lucasdmo_makenomistakes = "agents590.lucasdmo_makenomistakes:MyAgent"
 
