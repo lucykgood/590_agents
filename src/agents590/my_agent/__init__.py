@@ -6,6 +6,7 @@ from typing import cast
 
 from openai.types.responses import ResponseFunctionToolCall, ResponseInputParam
 
+from agents590.atif import ATIFRecorder, JSONValue
 from agents590.contracts import RunContext
 from agents590.provider import UNCOpenAISettings
 
@@ -21,6 +22,10 @@ class StarterAgent:
         # Use context.model to select the model and load credentials.
         settings = self.provider_settings(context)
 
+        # Set up ATIF recorder for the current run.
+        recorder = ATIFRecorder.from_environment(agent="my-agent", model=settings.model)
+        recorder.add("user", instruction)
+
         # Initialize the agent's memory (conversation history).
         history: ResponseInputParam = [{"role": "user", "content": instruction}]
 
@@ -30,7 +35,7 @@ class StarterAgent:
             for _ in range(10):
                 # Send the conversation and describe the shell tool the model can request.
                 response = await client.responses.create(
-                    model=settings.model, # Use the selected model.
+                    model=settings.model,  # Use the selected model.
                     input=history,
                     tools=[
                         {
@@ -56,11 +61,33 @@ class StarterAgent:
                     if item.type == "function_call":
                         tool_calls.append(item)
 
+                # Record the model's response in the ATIF recorder.
+                fields: dict[str, JSONValue] = {"model_name": settings.model}
+
+                if tool_calls:
+                    fields["tool_calls"] = [
+                        {
+                            "tool_call_id": call.call_id,
+                            "function_name": call.name,
+                            "arguments": cast(JSONValue, json.loads(call.arguments)),
+                        }
+                        for call in tool_calls
+                    ]
+
+                if response.usage is not None:
+                    fields["metrics"] = {
+                        "prompt_tokens": response.usage.input_tokens,
+                        "completion_tokens": response.usage.output_tokens,
+                        "cached_tokens": response.usage.input_tokens_details.cached_tokens,
+                    }
+
+                recorder.add("agent", response.output_text, **fields)
+
                 # If none, return the model's final output.
                 if not tool_calls:
                     return response.output_text
 
-                # Save the model's response in memory. 
+                # Save the model's response in memory.
                 history.extend(
                     cast(
                         ResponseInputParam,
@@ -72,6 +99,13 @@ class StarterAgent:
                 for tool_call in tool_calls:
                     arguments = json.loads(tool_call.arguments)
                     result = await self.run_shell(arguments["command"], context)
+
+                    step = recorder.document["steps"][-1]
+                    observation = step.setdefault("observation", {"results": []})
+                    observation["results"].append(
+                        {"source_call_id": tool_call.call_id, "content": result}
+                    )
+                    recorder.write()
 
                     history.append(
                         {

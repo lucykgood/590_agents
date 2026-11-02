@@ -108,6 +108,15 @@ class ATIFRecorder:
         """Atomically write the latest valid trajectory, if recording is enabled."""
         if self.path is None:
             return
+
+        metrics = [step["metrics"] for step in self.document["steps"] if "metrics" in step]
+        self.document["final_metrics"] = {
+            "total_prompt_tokens": sum(m["prompt_tokens"] for m in metrics),
+            "total_completion_tokens": sum(m["completion_tokens"] for m in metrics),
+            "total_cached_tokens": sum(m["cached_tokens"] for m in metrics),
+            "total_steps": len(self.document["steps"]),
+        }
+
         self.path.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.path.with_suffix(".tmp")
         temporary.write_text(json.dumps(self.document, indent=2) + "\n")
